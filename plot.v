@@ -54,14 +54,8 @@ fn linear_interpolation(a f32, b f32, k f32, n f32) f32 {
 pub struct Diagram {
 mut:
 	// a:
-	pos  struct {
-		x f32
-		y f32
-	}
-	size struct {
-		w f32
-		h f32
-	}
+	pos  Pos
+	size Pos = Pos{x: 10, y: 10}
 
 	// b:
 	abscises [][]f32
@@ -76,6 +70,11 @@ mut:
 	title      Label
 	x_label    Label
 	y_label    Label
+}
+
+struct Pos {
+	x f32
+	y f32
 }
 
 struct Label {
@@ -104,6 +103,20 @@ pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color) Diagram {
 }
 
 // changes
+pub fn (mut dia Diagram) change_pos(x f32, y f32) {
+	dia.pos = Pos{
+		x: x
+		y: y
+	}
+}
+
+pub fn (mut dia Diagram) change_size(w f32, h f32) {
+	dia.size = Pos{
+		x: w
+		y: h
+	}
+}
+
 pub fn (mut dia Diagram) add_curve(abscice []f32, value []f32, color gg.Color) {
 	dia.abscises << abscice
 	dia.values << value
@@ -136,7 +149,7 @@ pub fn (mut dia Diagram) border_size(border f32) {
 // rendering
 pub fn (dia Diagram) render(ctx gg.Context) {
 	// draw back
-	ctx.draw_rounded_rect_filled(dia.pos.x, dia.pos.y, dia.size.w, dia.size.h, dia.corner,
+	ctx.draw_rounded_rect_filled(dia.pos.x, dia.pos.y, dia.size.x, dia.size.y, dia.corner,
 		dia.background)
 	// draw grid
 	if dia.grid.x {
@@ -146,10 +159,10 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 		dia.render_y_grid(ctx)
 	}
 	// draw curves
-	max_x := dia.pos.x + dia.size.w - dia.border
+	max_x := dia.pos.x + dia.size.x - dia.border
 	min_x := dia.pos.x + dia.border
 
-	max_y := dia.pos.y + dia.size.h - dia.border
+	max_y := dia.pos.y + dia.size.y - dia.border
 	min_y := dia.pos.y + dia.border
 	for id in 0 .. dia.abscises.len {
 		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscises[id], dia.values[id],
@@ -161,10 +174,10 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 }
 
 fn (dia Diagram) render_x_grid(ctx gg.Context) {
-	max_x := dia.pos.x + dia.size.w - dia.border
+	max_x := dia.pos.x + dia.size.x - dia.border
 	min_x := dia.pos.x + dia.border
 
-	max_y := dia.pos.y + dia.size.h - dia.border
+	max_y := dia.pos.y + dia.size.y - dia.border
 	min_y := dia.pos.y + dia.border
 
 	total := dia.grid.x_nb
@@ -180,10 +193,10 @@ fn (dia Diagram) render_x_grid(ctx gg.Context) {
 }
 
 fn (dia Diagram) render_y_grid(ctx gg.Context) {
-	max_x := dia.pos.x + dia.size.w - dia.border
+	max_x := dia.pos.x + dia.size.x - dia.border
 	min_x := dia.pos.x + dia.border
 
-	max_y := dia.pos.y + dia.size.h - dia.border
+	max_y := dia.pos.y + dia.size.y - dia.border
 	min_y := dia.pos.y + dia.border
 
 	total := dia.grid.x_nb
@@ -199,12 +212,12 @@ fn (dia Diagram) render_y_grid(ctx gg.Context) {
 }
 
 fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice []f32, value []f32, color gg.Color) {
-	max_abs := max(abscice) or{panic('no max abs')}
+	max_abs := max(abscice) or { panic('no max abs') }
 	f_x := fn [min_x, max_x, max_abs] (abs f32) f32 {
 		return linear_interpolation(min_x, max_x, abs, max_abs)
 	}
 
-	max_value := max(value) or{panic('no max value')}
+	max_value := max(value) or { panic('no max value') }
 	f_y := fn [min_y, max_y, max_value] (value f32) f32 {
 		return linear_interpolation(min_y, max_y, value, max_value)
 	}

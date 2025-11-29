@@ -23,6 +23,8 @@ fn main() {
 
 	app.dia = plot.plot([[]f32{len: 100, init: index}], [[]f32{len: 100, init: index * index}],
 		[gg.red])
+	app.dia.change_pos(10, 10)
+	app.dia.change_size(400, 400)
 
 	app.ctx.run()
 }
