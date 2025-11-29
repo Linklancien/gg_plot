@@ -4,10 +4,10 @@ import gg
 import arrays { max, min }
 
 // render_graph creat a graph at x, y with a width of w and an height of h
-pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscise []f32, value []f32, name string) {
+pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscice []f32, value []f32, name string) {
 	max := max(value) or { panic('No max value') }
 	min := min(value) or { panic('No min value') }
-	max_a := max(abscise) or { panic('No max abscise') }
+	max_a := max(abscice) or { panic('No max abscice') }
 
 	f := fn [max, min, y, h] (value f32) f32 {
 		return y + h - h * (value - min) / (max - min)
@@ -18,11 +18,11 @@ pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscise []f3
 	// Some magic numbers
 	ctx.draw_rounded_rect_filled(f32(x - 10), f32(y - 10), f32(w + 35), f32(h + 10 + 35),
 		5, gg.dark_gray)
-	for k in 0 .. (abscise.len - 1) {
-		ctx.draw_line(f32(x + w * abscise[k] / max_a), f32(f(value[k])), f32(x + w * abscise[k +
+	for k in 0 .. (abscice.len - 1) {
+		ctx.draw_line(f32(x + w * abscice[k] / max_a), f32(f(value[k])), f32(x + w * abscice[k +
 			1] / max_a), f32(f(value[k + 1])), gg.red)
-		if k == 0 || k == abscise.len - 2 {
-			ctx.draw_text_def(int(x + w * abscise[k] / max_a), int(f(value[k])), 'x: ${abscise[k]}  y: ${value[k]}')
+		if k == 0 || k == abscice.len - 2 {
+			ctx.draw_text_def(int(x + w * abscice[k] / max_a), int(f(value[k])), 'x: ${abscice[k]}  y: ${value[k]}')
 			if value[k] == min {
 				render_min = false
 			}
@@ -30,15 +30,15 @@ pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscise []f3
 				render_max = false
 			}
 		} else if value[k] == max && render_max {
-			ctx.draw_text_def(int(x + w * abscise[k] / max_a), int(f(value[k])), 'x: ${abscise[k]}  y: ${value[k]}')
+			ctx.draw_text_def(int(x + w * abscice[k] / max_a), int(f(value[k])), 'x: ${abscice[k]}  y: ${value[k]}')
 			render_max = false
 		} else if value[k] == min && render_min {
-			ctx.draw_text_def(int(x + w * abscise[k] / max_a), int(f(value[k])), 'x: ${abscise[k]}  y: ${value[k]}')
+			ctx.draw_text_def(int(x + w * abscice[k] / max_a), int(f(value[k])), 'x: ${abscice[k]}  y: ${value[k]}')
 			render_min = false
 		}
 	}
 	// ctx.draw_text_def(int(x), int(f(value[0])), '${value[0]}')
-	// ctx.draw_text_def(int(x + w), int(f(value[abscise.len - 1])), '${value[abscise.len - 1]}')
+	// ctx.draw_text_def(int(x + w), int(f(value[abscice.len - 1])), '${value[abscice.len - 1]}')
 	ctx.draw_text_def(int(x + w / 2), int(y + h + 10), name)
 }
 
@@ -69,13 +69,7 @@ mut:
 	colors   []gg.Color
 
 	// c:
-	grid       struct {
-		color gg.Color = gg.black
-		x     bool     = true
-		x_nb  int      = 5
-		y     bool     = true
-		y_nb  int      = 5
-	}
+	grid       Grid
 	background gg.Color = gg.dark_gray
 	border     f32      = 10
 	corner     f32      = 5
@@ -90,10 +84,18 @@ mut:
 	cfg  gg.TextCfg
 }
 
+struct Grid {
+	color gg.Color = gg.black
+	x     bool     = true
+	x_nb  int      = 5
+	y     bool     = true
+	y_nb  int      = 5
+}
+
 // creation
 // basic creation
 pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color) Diagram {
-	assert abscises.len == values.len, 'Not enougth values or abscices'
+	assert abscises.len == values.len, 'Not enougth values or abscises'
 	return Diagram{
 		abscises: abscises
 		values:   values
@@ -102,14 +104,14 @@ pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color) Diagram {
 }
 
 // changes
-pub fn (mut dia Diagram) add_curve(abscise []f32, value []f32, color gg.Color) {
-	dia.abscises << abscise
+pub fn (mut dia Diagram) add_curve(abscice []f32, value []f32, color gg.Color) {
+	dia.abscises << abscice
 	dia.values << value
 	dia.colors << color
 }
 
 pub fn (mut dia Diagram) show_grid(to_show bool) {
-	dia.grid = {
+	dia.grid = Grid{
 		x: to_show
 		y: to_show
 	}
@@ -134,7 +136,7 @@ pub fn (mut dia Diagram) border_size(border f32) {
 // rendering
 pub fn (dia Diagram) render(ctx gg.Context) {
 	// draw back
-	ctx.draw_rounded_rect_filled(dia.pos.x, dia.pos.y, dia.pos.w, dia.pos.h, dia.corner,
+	ctx.draw_rounded_rect_filled(dia.pos.x, dia.pos.y, dia.size.w, dia.size.h, dia.corner,
 		dia.background)
 	// draw grid
 	if dia.grid.x {
@@ -144,14 +146,14 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 		dia.render_y_grid(ctx)
 	}
 	// draw curves
-	max_x := dia.pos.x + dia.w - dia.border
+	max_x := dia.pos.x + dia.size.w - dia.border
 	min_x := dia.pos.x + dia.border
 
-	max_y := dia.pos.y + dia.h - dia.border
+	max_y := dia.pos.y + dia.size.h - dia.border
 	min_y := dia.pos.y + dia.border
-	for id in dia.abscices.len {
-		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscices[id], dia.values[id],
-			dia.colors)
+	for id in 0 .. dia.abscises.len {
+		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscises[id], dia.values[id],
+			dia.colors[id])
 	}
 	// draw axes
 
@@ -159,10 +161,10 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 }
 
 fn (dia Diagram) render_x_grid(ctx gg.Context) {
-	max_x := dia.pos.x + dia.w - dia.border
+	max_x := dia.pos.x + dia.size.w - dia.border
 	min_x := dia.pos.x + dia.border
 
-	max_y := dia.pos.y + dia.h - dia.border
+	max_y := dia.pos.y + dia.size.h - dia.border
 	min_y := dia.pos.y + dia.border
 
 	total := dia.grid.x_nb
@@ -178,10 +180,10 @@ fn (dia Diagram) render_x_grid(ctx gg.Context) {
 }
 
 fn (dia Diagram) render_y_grid(ctx gg.Context) {
-	max_x := dia.pos.x + dia.w - dia.border
+	max_x := dia.pos.x + dia.size.w - dia.border
 	min_x := dia.pos.x + dia.border
 
-	max_y := dia.pos.y + dia.h - dia.border
+	max_y := dia.pos.y + dia.size.h - dia.border
 	min_y := dia.pos.y + dia.border
 
 	total := dia.grid.x_nb
@@ -196,18 +198,18 @@ fn (dia Diagram) render_y_grid(ctx gg.Context) {
 	}
 }
 
-fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice gg.Color, value gg.Color, color gg.Color) {
-	max_abs := max(abscice)
+fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice []f32, value []f32, color gg.Color) {
+	max_abs := max(abscice) or{panic('no max abs')}
 	f_x := fn [min_x, max_x, max_abs] (abs f32) f32 {
 		return linear_interpolation(min_x, max_x, abs, max_abs)
 	}
 
-	max_value := max(value)
+	max_value := max(value) or{panic('no max value')}
 	f_y := fn [min_y, max_y, max_value] (value f32) f32 {
 		return linear_interpolation(min_y, max_y, value, max_value)
 	}
 
-	for k in 0 .. (abscise.len - 1) {
+	for k in 0 .. (abscice.len - 1) {
 		x1 := f_x(abscice[k])
 		x2 := f_x(abscice[k + 1])
 		y1 := f_y(value[k])
