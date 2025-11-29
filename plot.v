@@ -43,7 +43,7 @@ pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscice []f3
 }
 
 // utility
-fn linear_interpolation(a f32, b f32, k f32, n f32) f32 {
+pub fn linear_interpolation(a f32, b f32, k f32, n f32) f32 {
 	return a + (b - a) * k / n
 }
 
@@ -61,6 +61,7 @@ mut:
 	abscises [][]f32
 	values   [][]f32
 	colors   []gg.Color
+	layers   []int
 
 	// c:
 	grid       Grid
@@ -93,13 +94,15 @@ struct Grid {
 
 // creation
 // basic creation
-pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color) Diagram {
-	assert abscises.len == values.len, 'Not enougth values or abscises'
-	assert abscises.len == colors.len, 'Not enougth color or abscises'
+pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color, layers []int) Diagram {
+	assert abscises.len == values.len, "Len of abscises and values doesn't match"
+	assert abscises.len == colors.len, "Len of abscises and colors doesn't match"
+	assert abscises.len == layers.len, "Len of abscises and layers doesn't match"
 	return Diagram{
 		abscises: abscises
 		values:   values
 		colors:   colors
+		layers:	layers
 	}
 }
 
@@ -118,10 +121,11 @@ pub fn (mut dia Diagram) change_size(w f32, h f32) {
 	}
 }
 
-pub fn (mut dia Diagram) add_curve(abscice []f32, value []f32, color gg.Color) {
+pub fn (mut dia Diagram) add_curve(abscice []f32, value []f32, color gg.Color, layer int) {
 	dia.abscises << abscice
 	dia.values << value
 	dia.colors << color
+	dia.layers << layer
 }
 
 pub fn (mut dia Diagram) show_grid(to_show bool) {
@@ -165,10 +169,18 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 
 	max_y := dia.pos.y + dia.size.y - dia.border
 	min_y := dia.pos.y + dia.border
+
+	mut list_max := []f32{len: dia.values.len, init: max(dia.values[index]) or {panic('No max value for dia: $dia')}}
+	for i, layer in dia.layers{
+		max := max(dia.values[i]) or {panic('No max value for dia: $dia')}
+		if list_max[layer] < max{
+			list_max[layer] = max
+		}
+	}
 	
 	for id in 0 .. dia.abscises.len {
 		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscises[id], dia.values[id],
-			dia.colors[id])
+			dia.colors[id], list_max[dia.layers[id]])
 	}
 	// draw axes
 
@@ -213,13 +225,12 @@ fn (dia Diagram) render_y_grid(ctx gg.Context) {
 	}
 }
 
-fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice []f32, value []f32, color gg.Color) {
+fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice []f32, value []f32, color gg.Color, max_value f32) {
 	max_abs := max(abscice) or { panic('no max abs') }
 	f_x := fn [min_x, max_x, max_abs] (abs f32) f32 {
 		return linear_interpolation(min_x, max_x, abs, max_abs)
 	}
 
-	max_value := max(value) or { panic('no max value') }
 	f_y := fn [min_y, max_y, max_value] (value f32) f32 {
 		return linear_interpolation(max_y, min_y, value, max_value)
 	}
