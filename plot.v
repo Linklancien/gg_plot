@@ -163,6 +163,10 @@ pub fn (mut dia Diagram) border_size(border f32) {
 	dia.border = border
 }
 
+pub fn (mut dia Diagram) corner_size(corner f32) {
+	dia.corner = corner
+}
+
 // rendering
 pub fn (dia Diagram) render(ctx gg.Context) {
 	max_x, max_y := dia.get_max_dim()
