@@ -13,10 +13,10 @@ const cfg_y_axe = gg.TextCfg{
 }
 
 // render_graph creat a graph at x, y with a width of w and an height of h
-pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscice []f32, value []f32, name string) {
+pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscisse []f32, value []f32, name string) {
 	max := max(value) or { panic('No max value') }
 	min := min(value) or { panic('No min value') }
-	max_a := max(abscice) or { panic('No max abscice') }
+	max_a := max(abscisse) or { panic('No max abscisse') }
 
 	f := fn [max, min, y, h] (value f32) f32 {
 		return y + h - h * (value - min) / (max - min)
@@ -27,11 +27,11 @@ pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscice []f3
 	// Some magic numbers
 	ctx.draw_rounded_rect_filled(f32(x - 10), f32(y - 10), f32(w + 35), f32(h + 10 + 35),
 		5, gg.dark_gray)
-	for k in 0 .. (abscice.len - 1) {
-		ctx.draw_line(f32(x + w * abscice[k] / max_a), f32(f(value[k])), f32(x + w * abscice[k +
+	for k in 0 .. (abscisse.len - 1) {
+		ctx.draw_line(f32(x + w * abscisse[k] / max_a), f32(f(value[k])), f32(x + w * abscisse[k +
 			1] / max_a), f32(f(value[k + 1])), gg.red)
-		if k == 0 || k == abscice.len - 2 {
-			ctx.draw_text_def(int(x + w * abscice[k] / max_a), int(f(value[k])), 'x: ${abscice[k]}  y: ${value[k]}')
+		if k == 0 || k == abscisse.len - 2 {
+			ctx.draw_text_def(int(x + w * abscisse[k] / max_a), int(f(value[k])), 'x: ${abscisse[k]}  y: ${value[k]}')
 			if value[k] == min {
 				render_min = false
 			}
@@ -39,15 +39,15 @@ pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscice []f3
 				render_max = false
 			}
 		} else if value[k] == max && render_max {
-			ctx.draw_text_def(int(x + w * abscice[k] / max_a), int(f(value[k])), 'x: ${abscice[k]}  y: ${value[k]}')
+			ctx.draw_text_def(int(x + w * abscisse[k] / max_a), int(f(value[k])), 'x: ${abscisse[k]}  y: ${value[k]}')
 			render_max = false
 		} else if value[k] == min && render_min {
-			ctx.draw_text_def(int(x + w * abscice[k] / max_a), int(f(value[k])), 'x: ${abscice[k]}  y: ${value[k]}')
+			ctx.draw_text_def(int(x + w * abscisse[k] / max_a), int(f(value[k])), 'x: ${abscisse[k]}  y: ${value[k]}')
 			render_min = false
 		}
 	}
 	// ctx.draw_text_def(int(x), int(f(value[0])), '${value[0]}')
-	// ctx.draw_text_def(int(x + w), int(f(value[abscice.len - 1])), '${value[abscice.len - 1]}')
+	// ctx.draw_text_def(int(x + w), int(f(value[abscisse.len - 1])), '${value[abscisse.len - 1]}')
 	ctx.draw_text_def(int(x + w / 2), int(y + h + 10), name)
 }
 
@@ -70,14 +70,14 @@ mut:
 	}
 
 	// b:
-	abscises [][]f32
+	abscisses [][]f32
 	values   [][]f32
 	colors   []gg.Color
 	layers   []int
 
 	// c:
 	grid       Grid
-	background gg.Color = gg.dark_gray
+	background gg.Color = gg.white
 	border     f32      = 10
 	corner     f32      = 5
 	title      Label
@@ -106,12 +106,12 @@ struct Grid {
 
 // creation
 // basic creation
-pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color, layers []int) Diagram {
-	assert abscises.len == values.len, "Len of abscises and values doesn't match"
-	assert abscises.len == colors.len, "Len of abscises and colors doesn't match"
-	assert abscises.len == layers.len, "Len of abscises and layers doesn't match"
+pub fn plot(abscisses [][]f32, values [][]f32, colors []gg.Color, layers []int) Diagram {
+	assert abscisses.len == values.len, "Len of abscisses and values doesn't match"
+	assert abscisses.len == colors.len, "Len of abscisses and colors doesn't match"
+	assert abscisses.len == layers.len, "Len of abscisses and layers doesn't match"
 	return Diagram{
-		abscises: abscises
+		abscisses: abscisses
 		values:   values
 		colors:   colors
 		layers:   layers
@@ -133,8 +133,8 @@ pub fn (mut dia Diagram) change_size(w f32, h f32) {
 	}
 }
 
-pub fn (mut dia Diagram) add_curve(abscice []f32, value []f32, color gg.Color, layer int) {
-	dia.abscises << abscice
+pub fn (mut dia Diagram) add_curve(abscisse []f32, value []f32, color gg.Color, layer int) {
+	dia.abscisses << abscisse
 	dia.values << value
 	dia.colors << color
 	dia.layers << layer
@@ -185,8 +185,8 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 
 	list_max := dia.get_list_max()
 
-	for id in 0 .. dia.abscises.len {
-		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscises[id], dia.values[id],
+	for id in 0 .. dia.abscisses.len {
+		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscisses[id], dia.values[id],
 			dia.colors[id], list_max[dia.layers[id]])
 	}
 	// draw axes values
@@ -248,8 +248,8 @@ fn (dia Diagram) get_list_max() []f32 {
 	return list_max
 }
 
-fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice []f32, value []f32, color gg.Color, max_value f32) {
-	max_abs := max(abscice) or { panic('no max abs') }
+fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscisse []f32, value []f32, color gg.Color, max_value f32) {
+	max_abs := max(abscisse) or { panic('no max abs') }
 	f_x := fn [min_x, max_x, max_abs] (abs f32) f32 {
 		return linear_interpolation(min_x, max_x, abs, max_abs)
 	}
@@ -258,9 +258,9 @@ fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, absc
 		return linear_interpolation(max_y, min_y, value, max_value)
 	}
 
-	for k in 0 .. (abscice.len - 1) {
-		x1 := f_x(abscice[k])
-		x2 := f_x(abscice[k + 1])
+	for k in 0 .. (abscisse.len - 1) {
+		x1 := f_x(abscisse[k])
+		x2 := f_x(abscisse[k + 1])
 		y1 := f_y(value[k])
 		y2 := f_y(value[k + 1])
 		ctx.draw_line(x1, y1, x2, y2, color)
@@ -276,9 +276,16 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 		return int(linear_interpolation(min_x, max_x, value, total_x))
 	}
 
+	min_abs := min(dia.abscisses[0])or{panic('No min')}
+	max_abs := max(dia.abscisses[0])or{panic('No max')}
+	f_abs := fn [min_abs, max_abs, total_x] (value f32) f32 {
+		return linear_interpolation(min_abs, max_abs, value, total_x)
+	}
+
 	for i in 0 .. (total_x + 1) {
 		x := f_x(i)
-		text := 'TEST ${i}'
+		text := '${f_abs(i)}'
+		// panic('$min_abs, $max_abs, ${f_abs(3)} ${dia.abscisses[0]}')
 		ctx.draw_text(x, int(max_y + dia.border / 2), text, cfg_x_axe)
 	}
 	// y
@@ -287,10 +294,15 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 	f_y := fn [min_y, max_y, total_y] (value f32) int {
 		return int(linear_interpolation(min_y, max_y, value, total_y))
 	}
+	min_value := min(dia.values[0])or{panic('No min')}
+	max_value := max(dia.values[0])or{panic('No max')}
+	f_val := fn [min_value, max_value, total_y] (value f32) f32 {
+		return linear_interpolation(min_value, max_value, value, total_y)
+	}
 
 	for i in 0 .. (total_y + 1) {
 		y := f_y(i)
-		text := 'TEST ${i}'
+		text := '${f_val(i)}'
 		ctx.draw_text(int(min_x - dia.border / 2), y, text, cfg_y_axe)
 	}
 }

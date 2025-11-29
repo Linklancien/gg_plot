@@ -15,7 +15,7 @@ fn main() {
 		height:        100 * 6
 		create_window: true
 		window_title:  '-Test plot-'
-		bg_color:      gg.gray
+		bg_color:      gg.white
 		user_data:     app
 		frame_fn:      on_frame
 		sample_count:  4
@@ -26,9 +26,9 @@ fn main() {
 	f := fn [start, end, precision] (id f32) f32 {
 		return plot.linear_interpolation(start, end, id, precision)
 	}
-	app.dia = plot.plot([[]f32{len: precision, init: f(index)},
-		[]f32{len: precision, init: f(index)}], [[]f32{len: precision, init: f(index) * f(index)},
-		[]f32{len: precision, init: f(index) * f(index) * f(index)}], [gg.red, gg.blue],
+	app.dia = plot.plot([[]f32{len: precision + 1, init: f(index)},
+		[]f32{len: precision + 1, init: f(index)}], [[]f32{len: precision + 1, init: f(index) * f(index)},
+		[]f32{len: precision + 1, init: f(index) * f(index) * f(index)}], [gg.red, gg.blue],
 		[0, 0])
 	app.dia.change_pos(100, 50)
 	app.dia.change_size(600, 500)
