@@ -94,7 +94,10 @@ struct Pos {
 struct Label {
 mut:
 	text string
-	cfg  gg.TextCfg
+	cfg  gg.TextCfg = gg.TextCfg{
+	align:          .center
+	vertical_align: .middle
+}
 }
 
 struct Grid {
@@ -192,6 +195,7 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 	dia.render_axes(ctx, min_x, max_x, min_y, max_y, min_abs, max_abs, min_val, max_val)
 
 	// draw labels
+	dia.render_labels(ctx, min_x, max_x, min_y, max_y)
 }
 
 fn (dia Diagram) get_max_dim() (f32, f32) {
@@ -310,4 +314,13 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 		text_val := '${round_sig(f_val(i), signigicant_numbers)}'
 		ctx.draw_text(int(min_x - dia.border / 2), y, text_val, cfg_y_axe)
 	}
+}
+
+fn (dia Diagram) render_labels(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32){
+	x_title := int((min_x + max_x)/2)
+	y_title := int(min_y - dia.border / 2)
+
+
+	
+	ctx.draw_text(x_title, y_title, dia.title.text, dia.title.cfg)
 }
