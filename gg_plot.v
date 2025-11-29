@@ -1,4 +1,4 @@
-module plot
+module gg_plot
 
 import gg
 import arrays { max, min }

@@ -1,4 +1,4 @@
-import linklancien.plot
+import linklancien.gg_plot
 import gg
 
 fn main() {
@@ -20,6 +20,6 @@ fn on_frame(mut ctx gg.Context) {
 	abscise := []f32{len: 100, init: index}
 	value := []f32{len: 100, init: index * index}
 	ctx.begin()
-	plot.render_raw_graph(ctx, 20.0, 20.0, 500, 500, abscise, value, 'Test plot: x**2')
+	gg_plot.render_raw_graph(ctx, 20.0, 20.0, 500, 500, abscise, value, 'Test plot: x**2')
 	ctx.end()
 }

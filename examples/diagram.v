@@ -1,10 +1,10 @@
-import linklancien.plot
+import linklancien.gg_plot
 import gg
 
 struct App {
 mut:
 	ctx &gg.Context = unsafe { nil }
-	dia plot.Diagram
+	dia gg_plot.Diagram
 }
 
 fn main() {
@@ -14,7 +14,7 @@ fn main() {
 		width:         100 * 9
 		height:        100 * 6
 		create_window: true
-		window_title:  '-Test plot-'
+		window_title:  '-Test gg_plot-'
 		bg_color:      gg.white
 		user_data:     app
 		frame_fn:      on_frame
@@ -24,12 +24,11 @@ fn main() {
 	start := 0
 	end := 2
 	f := fn [start, end, precision] (id f32) f32 {
-		return plot.linear_interpolation(start, end, id, precision)
+		return gg_plot.linear_interpolation(start, end, id, precision)
 	}
-	app.dia = plot.plot([[]f32{len: precision + 1, init: f(index)},
+	app.dia = gg_plot.plot([[]f32{len: precision + 1, init: f(index)},
 		[]f32{len: precision + 1, init: f(index)}], [[]f32{len: precision + 1, init: f(index) * f(index)},
-		[]f32{len: precision + 1, init: f(index) * f(index) * f(index)}], [gg.red, gg.blue],
-		[0, 0])
+		[]f32{len: precision + 1, init: f(index) * f(index) * f(index)}], [gg.red, gg.blue])
 	app.dia.change_pos(150, 50)
 	app.dia.change_size(600, 500)
 	app.dia.border_size(30)
