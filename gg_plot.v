@@ -317,6 +317,15 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 }
 
 fn (dia Diagram) render_labels(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32) {
-x_title := int((min_x + max_x) / 2)
-y_title := int(min_y - dia.border / 2)ctx.draw_text(x_title, y_title, dia.title.text, dia.title.cfg)
+	x_title := int((min_x + max_x) / 2)
+	y_title := int(min_y - dia.border / 2)
+	ctx.draw_text(x_title, y_title, dia.title.text, dia.title.cfg)
+
+	x_x_label := int((min_x + max_x) / 2)
+	y_x_label := int(max_y + dia.border / 2)
+	ctx.draw_text(x_x_label, y_x_label, dia.x_label.text, dia.x_label.cfg)
+
+	x_y_label := int(min_x)
+	y_y_label := int(min_y - dia.border / 2)
+	ctx.draw_text(x_y_label, y_y_label, dia.y_label.text, dia.y_label.cfg)
 }

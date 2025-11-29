@@ -35,6 +35,9 @@ fn main() {
 	app.dia.corner_size(30)
 	app.dia.title('x square and cube ')
 
+	app.dia.x_label('x')
+	app.dia.y_label('Somme power of x')
+
 	app.ctx.run()
 }
 
