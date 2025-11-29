@@ -319,8 +319,7 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 fn (dia Diagram) render_labels(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32){
 	x_title := int((min_x + max_x)/2)
 	y_title := int(min_y - dia.border / 2)
-
-
-	
-	ctx.draw_text(x_title, y_title, dia.title.text, dia.title.cfg)
+	ctx.draw_text(x_title, y_title, 
+	dia.title.text, 
+	dia.title.cfg)
 }
