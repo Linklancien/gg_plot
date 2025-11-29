@@ -2,6 +2,7 @@ module gg_plot
 
 import gg
 import arrays { max, min }
+import math { round_sig }
 
 const cfg_x_axe = gg.TextCfg{
 	align:          .center
@@ -11,6 +12,7 @@ const cfg_y_axe = gg.TextCfg{
 	align:          .right
 	vertical_align: .middle
 }
+const signigicant_numbers = 3
 
 // render_graph creat a graph at x, y with a width of w and an height of h
 pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscisse []f32, value []f32, name string) {
@@ -180,13 +182,13 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 	// draw curves
 
 	max_abs, max_val := dia.get_max()
+	min_abs, min_val := dia.get_min()
 
 	for id in 0 .. dia.abscisses.len {
-		render_curve(ctx, min_x, max_x, min_y, max_y, max_abs, max_val, dia.abscisses[id], dia.values[id],
-			dia.colors[id])
+		render_curve(ctx, min_x, max_x, min_y, max_y, min_abs, max_abs, min_val, max_val,
+			dia.abscisses[id], dia.values[id], dia.colors[id])
 	}
 	// draw axes values
-	min_abs, min_val := dia.get_min()
 	dia.render_axes(ctx, min_x, max_x, min_y, max_y, min_abs, max_abs, min_val, max_val)
 
 	// draw labels
@@ -233,36 +235,36 @@ fn (dia Diagram) render_y_grid(ctx gg.Context, min_x f32, max_x f32, min_y f32, 
 
 // draw curves
 fn (dia Diagram) get_max() (f32, f32) {
-	mut max_abs := max(dia.abscisses[0]) or {panic('No abs')}
-	mut max_val := max(dia.values[0]) or {panic('No val')}
-	for i in 1..dia.abscisses.len{
-		local_abs := max(dia.abscisses[i]) or {panic('No abs')}
+	mut max_abs := max(dia.abscisses[0]) or { panic('No abs') }
+	mut max_val := max(dia.values[0]) or { panic('No val') }
+	for i in 1 .. dia.abscisses.len {
+		local_abs := max(dia.abscisses[i]) or { panic('No abs') }
 		max_abs = f32_max(local_abs, max_abs)
-		local_val := max(dia.values[i]) or {panic('No val')}
+		local_val := max(dia.values[i]) or { panic('No val') }
 		max_val = f32_max(max_val, local_val)
 	}
 	return max_abs, max_val
 }
 
 fn (dia Diagram) get_min() (f32, f32) {
-	mut min_abs := min(dia.abscisses[0]) or {panic('No abs')}
-	mut min_val := min(dia.values[0]) or {panic('No val')}
-	for i in 1..dia.abscisses.len{
-		local_abs := min(dia.abscisses[i]) or {panic('No abs')}
+	mut min_abs := min(dia.abscisses[0]) or { panic('No abs') }
+	mut min_val := min(dia.values[0]) or { panic('No val') }
+	for i in 1 .. dia.abscisses.len {
+		local_abs := min(dia.abscisses[i]) or { panic('No abs') }
 		min_abs = f32_min(local_abs, min_abs)
-		local_val := min(dia.values[i]) or {panic('No val')}
+		local_val := min(dia.values[i]) or { panic('No val') }
 		min_val = f32_min(min_val, local_val)
 	}
 	return min_abs, min_val
 }
 
-fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, max_abs f32, max_val f32, abscisse []f32, value []f32, color gg.Color) {
-	f_x := fn [min_x, max_x, max_abs] (abs f32) f32 {
-		return linear_interpolation(min_x, max_x, abs, max_abs)
+fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, min_abs f32, max_abs f32, min_val f32, max_val f32, abscisse []f32, value []f32, color gg.Color) {
+	f_x := fn [min_x, max_x, min_abs, max_abs] (abs f32) f32 {
+		return linear_interpolation(min_x, max_x, abs - min_abs, max_abs - min_abs)
 	}
 
-	f_y := fn [min_y, max_y, max_val] (value f32) f32 {
-		return linear_interpolation(max_y, min_y, value, max_val)
+	f_y := fn [min_y, max_y, min_val, max_val] (value f32) f32 {
+		return linear_interpolation(max_y, min_y, value - min_val, max_val - min_val)
 	}
 
 	for k in 0 .. (abscisse.len - 1) {
@@ -282,14 +284,14 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 	f_x := fn [min_x, max_x, total_x] (value f32) int {
 		return int(linear_interpolation(min_x, max_x, value, total_x))
 	}
-	
+
 	f_abs := fn [min_abs, max_abs, total_x] (value f32) f32 {
 		return linear_interpolation(min_abs, max_abs, value, total_x)
 	}
 
 	for i in 0 .. (total_x + 1) {
 		x := f_x(i)
-		text_abs :='${f_abs(i)}'
+		text_abs := '${round_sig(f_abs(i), signigicant_numbers)}'
 		ctx.draw_text(x, int(max_y + dia.border / 2), text_abs, cfg_x_axe)
 	}
 	// y
@@ -298,14 +300,14 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 	f_y := fn [min_y, max_y, total_y] (value f32) int {
 		return int(linear_interpolation(min_y, max_y, value, total_y))
 	}
-	
+
 	f_val := fn [min_val, max_val, total_y] (value f32) f32 {
 		return linear_interpolation(max_val, min_val, value, total_y)
 	}
 
 	for i in 0 .. (total_y + 1) {
 		y := f_y(i)
-		text_val := '${f_val(i)}'
+		text_val := '${round_sig(f_val(i), signigicant_numbers)}'
 		ctx.draw_text(int(min_x - dia.border / 2), y, text_val, cfg_y_axe)
 	}
 }
