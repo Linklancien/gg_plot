@@ -73,7 +73,6 @@ mut:
 	abscisses [][]f32
 	values    [][]f32
 	colors    []gg.Color
-	layers    []int
 
 	// c:
 	grid       Grid
@@ -106,15 +105,13 @@ struct Grid {
 
 // creation
 // basic creation
-pub fn plot(abscisses [][]f32, values [][]f32, colors []gg.Color, layers []int) Diagram {
+pub fn plot(abscisses [][]f32, values [][]f32, colors []gg.Color) Diagram {
 	assert abscisses.len == values.len, "Len of abscisses and values doesn't match"
 	assert abscisses.len == colors.len, "Len of abscisses and colors doesn't match"
-	assert abscisses.len == layers.len, "Len of abscisses and layers doesn't match"
 	return Diagram{
 		abscisses: abscisses
 		values:    values
 		colors:    colors
-		layers:    layers
 	}
 }
 
@@ -133,11 +130,10 @@ pub fn (mut dia Diagram) change_size(w f32, h f32) {
 	}
 }
 
-pub fn (mut dia Diagram) add_curve(abscisse []f32, value []f32, color gg.Color, layer int) {
+pub fn (mut dia Diagram) add_curve(abscisse []f32, value []f32, color gg.Color) {
 	dia.abscisses << abscisse
 	dia.values << value
 	dia.colors << color
-	dia.layers << layer
 }
 
 pub fn (mut dia Diagram) show_grid(to_show bool) {
@@ -183,11 +179,11 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 	}
 	// draw curves
 
-	list_max := dia.get_list_max()
+	max_abs, max_val := dia.get_max()
 
 	for id in 0 .. dia.abscisses.len {
 		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscisses[id], dia.values[id],
-			dia.colors[id], list_max[dia.layers[id]])
+			dia.colors[id], max_abs, max_val)
 	}
 	// draw axes values
 	dia.render_axes(ctx, min_x, max_x, min_y, max_y)
@@ -235,7 +231,7 @@ fn (dia Diagram) render_y_grid(ctx gg.Context, min_x f32, max_x f32, min_y f32, 
 }
 
 // draw curves
-fn (dia Diagram) get_list_max() []f32 {
+fn (dia Diagram) get_max() (f32, f32) {
 	mut list_max := []f32{len: dia.values.len, init: max(dia.values[index]) or {
 		panic('No max value for dia: ${dia}')
 	}}
@@ -248,8 +244,7 @@ fn (dia Diagram) get_list_max() []f32 {
 	return list_max
 }
 
-fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscisse []f32, value []f32, color gg.Color, max_value f32) {
-	max_abs := max(abscisse) or { panic('no max abs') }
+fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscisse []f32, value []f32, color gg.Color, max_abs f32, max_val f32) {
 	f_x := fn [min_x, max_x, max_abs] (abs f32) f32 {
 		return linear_interpolation(min_x, max_x, abs, max_abs)
 	}
@@ -268,28 +263,22 @@ fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, absc
 }
 
 // draw axes values
-fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32) {
+fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, max_abs f32, max_val f32) {
 	// x
 	total_x := dia.grid.x_nb
 
 	f_x := fn [min_x, max_x, total_x] (value f32) int {
 		return int(linear_interpolation(min_x, max_x, value, total_x))
 	}
-	mut texts_abs := []string{len: (total_x + 1)}
-	for id in 0 .. dia.abscisses.len {
-		min_abs := min(dia.abscisses[id]) or { panic('No min') }
-		max_abs := max(dia.abscisses[id]) or { panic('No max') }
-		f_abs := fn [min_abs, max_abs, total_x] (value f32) f32 {
-			return linear_interpolation(min_abs, max_abs, value, total_x)
-		}
-		for i in 0 .. (total_x + 1) {
-			texts_abs[i] += '|${f_abs(i)}|'
-		}
+	
+	f_abs := fn [min_abs, max_abs, total_x] (value f32) f32 {
+		return linear_interpolation(min_abs, max_abs, value, total_x)
 	}
 
 	for i in 0 .. (total_x + 1) {
 		x := f_x(i)
-		ctx.draw_text(x, int(max_y + dia.border / 2), texts_abs[i], cfg_x_axe)
+		text_abs ='${f_abs(i)}'
+		ctx.draw_text(x, int(max_y + dia.border / 2), text_abs, cfg_x_axe)
 	}
 	// y
 	total_y := dia.grid.y_nb
@@ -297,20 +286,14 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 	f_y := fn [min_y, max_y, total_y] (value f32) int {
 		return int(linear_interpolation(min_y, max_y, value, total_y))
 	}
-	mut texts_val := []string{len: (total_x + 1)}
-	for id in 0 .. dia.values.len {
-		min_value := min(dia.values[id]) or { panic('No min') }
-		max_value := max(dia.values[id]) or { panic('No max') }
-		f_val := fn [min_value, max_value, total_y] (value f32) f32 {
-			return linear_interpolation(max_value, min_value, value, total_y)
-		}
-		for i in 0 .. (total_x + 1) {
-			texts_val[i] += '|${f_val(i)}|'
-		}
+	
+	f_val := fn [min_val, max_val, total_y] (value f32) f32 {
+		return linear_interpolation(max_val, min_val, value, total_y)
 	}
 
 	for i in 0 .. (total_y + 1) {
 		y := f_y(i)
-		ctx.draw_text(int(min_x - dia.border / 2), y, texts_val[i], cfg_y_axe)
+		text_val := '${f_val(i)}'
+		ctx.draw_text(int(min_x - dia.border / 2), y, text_val, cfg_y_axe)
 	}
 }
