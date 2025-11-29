@@ -42,6 +42,11 @@ pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscise []f3
 	ctx.draw_text_def(int(x + w / 2), int(y + h + 10), name)
 }
 
+// utility
+fn linear_interpolation(a f32, b f32, k f32, n f32)f32{
+	return a + (b - a)*k/n
+}
+
 //
 // a: global position
 // b: value the will be plot
@@ -160,8 +165,14 @@ fn (dia Diagram) render_x_grid(ctx gg.Context) {
 	max_y := dia.pos.y + dia.h - dia.border
 	min_y := dia.pos.y + dia.border
 
-	for i in 0 .. dia.grid.x_nb {
-		x := f32(min_x + (max_x - min_x) * i / dia.grid.x_nb)
+	total := dia.grid.x_nb
+
+	f := fn [min_x, max_x, total] (value f32) f32 {
+		return linear_interpolation(min_x, max_x, value, total)
+	}
+
+	for i in 0 .. total {
+		x := f(i)
 		ctx.draw_line(x, min_y, x, max_y, dia.grid.color)
 	}
 }
@@ -173,15 +184,35 @@ fn (dia Diagram) render_y_grid(ctx gg.Context) {
 	max_y := dia.pos.y + dia.h - dia.border
 	min_y := dia.pos.y + dia.border
 
-	for i in 0 .. dia.grid.y_nb {
-		y := f32(min_y + (max_y - min_y) * i / dia.grid.y_nb)
+	total := dia.grid.x_nb
+
+	f := fn [min_y, max_y, total] (value f32) f32 {
+		return linear_interpolation(min_y, max_y, value, total)
+	}
+
+	for i in 0 .. total {
+		y := f(i)
 		ctx.draw_line(min_x, y, max_x, y, dia.grid.color)
 	}
 }
 
 fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice gg.Color, value gg.Color, color gg.Color) {
+	f_x := fn [min_x, max_x] (value f32) f32 {
+		return y + h - h * (value - min) / (max - min)
+	}
+
+	f_y := fn [min_y, max_y] (value f32) f32 {
+		return min_y + (max_y - min_y)*value/max_value
+	}
+
+	f32(x + w * abscise[k] / max_a), f32(f(value[k])), f32(x + w * abscise[k +
+			1] / max_a), f32(f(value[k + 1]))
+
 	for k in 0 .. (abscise.len - 1) {
-		ctx.draw_line(f32(x + w * abscise[k] / max_a), f32(f(value[k])), f32(x + w * abscise[k +
-			1] / max_a), f32(f(value[k + 1])), gg.red)
+		x1 := 
+		x2 := 
+		y1 := 
+		y2 := 
+		ctx.draw_line(x, y, x2, y2, color)
 	}
 }
