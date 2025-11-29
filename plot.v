@@ -55,7 +55,10 @@ pub struct Diagram {
 mut:
 	// a:
 	pos  Pos
-	size Pos = Pos{x: 10, y: 10}
+	size Pos = Pos{
+		x: 10
+		y: 10
+	}
 
 	// b:
 	abscises [][]f32
@@ -102,7 +105,7 @@ pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color, layers []int) D
 		abscises: abscises
 		values:   values
 		colors:   colors
-		layers:	layers
+		layers:   layers
 	}
 }
 
@@ -164,14 +167,11 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 		dia.render_y_grid(ctx)
 	}
 	// draw curves
-	max_x := dia.pos.x + dia.size.x - dia.border
-	min_x := dia.pos.x + dia.border
-
-	max_y := dia.pos.y + dia.size.y - dia.border
-	min_y := dia.pos.y + dia.border
+	max_x, max_y := dia.get_max_dim()
+	min_x, min_y := dia.get_min_dim()
 
 	list_max := dia.get_list_max()
-	
+
 	for id in 0 .. dia.abscises.len {
 		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscises[id], dia.values[id],
 			dia.colors[id], list_max[dia.layers[id]])
@@ -181,13 +181,22 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 	// draw labels
 }
 
+fn (dia Diagram) get_max_dim() (f32, f32) {
+	max_x := dia.pos.x + dia.size.x - dia.border
+	max_y := dia.pos.y + dia.size.y - dia.border
+	return max_x, max_y
+}
+
+fn (dia Diagram) get_min_dim() (f32, f32) {
+	min_x := dia.pos.x + dia.border
+	min_y := dia.pos.y + dia.border
+	return min_x, min_y
+}
+
 // draw grid
 fn (dia Diagram) render_x_grid(ctx gg.Context) {
-	max_x := dia.pos.x + dia.size.x - dia.border
-	min_x := dia.pos.x + dia.border
-
-	max_y := dia.pos.y + dia.size.y - dia.border
-	min_y := dia.pos.y + dia.border
+	max_x, max_y := dia.get_max_dim()
+	min_x, min_y := dia.get_min_dim()
 
 	total := dia.grid.x_nb
 
@@ -202,11 +211,8 @@ fn (dia Diagram) render_x_grid(ctx gg.Context) {
 }
 
 fn (dia Diagram) render_y_grid(ctx gg.Context) {
-	max_x := dia.pos.x + dia.size.x - dia.border
-	min_x := dia.pos.x + dia.border
-
-	max_y := dia.pos.y + dia.size.y - dia.border
-	min_y := dia.pos.y + dia.border
+	max_x, max_y := dia.get_max_dim()
+	min_x, min_y := dia.get_min_dim()
 
 	total := dia.grid.x_nb
 
@@ -222,10 +228,12 @@ fn (dia Diagram) render_y_grid(ctx gg.Context) {
 
 // draw curves
 fn (dia Diagram) get_list_max() []f32 {
-	mut list_max := []f32{len: dia.values.len, init: max(dia.values[index]) or {panic('No max value for dia: $dia')}}
-	for i, layer in dia.layers{
-		max := max(dia.values[i]) or {panic('No max value for dia: $dia')}
-		if list_max[layer] < max{
+	mut list_max := []f32{len: dia.values.len, init: max(dia.values[index]) or {
+		panic('No max value for dia: ${dia}')
+	}}
+	for i, layer in dia.layers {
+		max := max(dia.values[i]) or { panic('No max value for dia: ${dia}') }
+		if list_max[layer] < max {
 			list_max[layer] = max
 		}
 	}

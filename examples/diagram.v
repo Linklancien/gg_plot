@@ -23,11 +23,13 @@ fn main() {
 	precision := 100
 	start := 0
 	end := 2
-	f := fn [start, end, precision] (id f32) f32{
+	f := fn [start, end, precision] (id f32) f32 {
 		return plot.linear_interpolation(start, end, id, precision)
 	}
-	app.dia = plot.plot([[]f32{len: precision, init: f(index)}, []f32{len: precision, init: f(index)}], [[]f32{len: precision, init: f(index) * f(index)}, []f32{len: precision, init: f(index) * f(index) * f(index)}],
-		[gg.red, gg.blue], [0, 0])
+	app.dia = plot.plot([[]f32{len: precision, init: f(index)},
+		[]f32{len: precision, init: f(index)}], [[]f32{len: precision, init: f(index) * f(index)},
+		[]f32{len: precision, init: f(index) * f(index) * f(index)}], [gg.red, gg.blue],
+		[0, 0])
 	app.dia.change_pos(10, 10)
 	app.dia.change_size(400, 400)
 
