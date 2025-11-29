@@ -43,15 +43,15 @@ pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscise []f3
 }
 
 // utility
-fn linear_interpolation(a f32, b f32, k f32, n f32)f32{
-	return a + (b - a)*k/n
+fn linear_interpolation(a f32, b f32, k f32, n f32) f32 {
+	return a + (b - a) * k / n
 }
 
 //
 // a: global position
 // b: value the will be plot
 // c: visuals
-struct Diagram {
+pub struct Diagram {
 mut:
 	// a:
 	pos  struct {
@@ -70,7 +70,7 @@ mut:
 
 	// c:
 	grid       struct {
-		color gg.Color = gg.Black
+		color gg.Color = gg.black
 		x     bool     = true
 		x_nb  int      = 5
 		y     bool     = true
@@ -93,7 +93,7 @@ mut:
 // creation
 // basic creation
 pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color) Diagram {
-	assert abscise.len == values.len, 'Not enougth values or abscices'
+	assert abscises.len == values.len, 'Not enougth values or abscices'
 	return Diagram{
 		abscises: abscises
 		values:   values
@@ -102,32 +102,32 @@ pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color) Diagram {
 }
 
 // changes
-pub fn (dia Diagram) add_curve(abscise []f32, value []f32, color gg.Color) {
+pub fn (mut dia Diagram) add_curve(abscise []f32, value []f32, color gg.Color) {
 	dia.abscises << abscise
 	dia.values << value
-	dia.colros << color
+	dia.colors << color
 }
 
-pub fn (dia Diagram) show_grid(to_show bool) {
+pub fn (mut dia Diagram) show_grid(to_show bool) {
 	dia.grid = {
 		x: to_show
 		y: to_show
 	}
 }
 
-pub fn (dia Diagram) title(text string) {
+pub fn (mut dia Diagram) title(text string) {
 	dia.title.text = text
 }
 
-pub fn (dia Diagram) x_label(text string) {
+pub fn (mut dia Diagram) x_label(text string) {
 	dia.x_label.text = text
 }
 
-pub fn (dia Diagram) y_label(text string) {
+pub fn (mut dia Diagram) y_label(text string) {
 	dia.y_label.text = text
 }
 
-pub fn (dia Diagram) border_size(border f32) {
+pub fn (mut dia Diagram) border_size(border f32) {
 	dia.border = border
 }
 
@@ -150,7 +150,7 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 	max_y := dia.pos.y + dia.h - dia.border
 	min_y := dia.pos.y + dia.border
 	for id in dia.abscices.len {
-		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscices[i], dia.values[i],
+		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscices[id], dia.values[id],
 			dia.colors)
 	}
 	// draw axes
@@ -197,22 +197,21 @@ fn (dia Diagram) render_y_grid(ctx gg.Context) {
 }
 
 fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice gg.Color, value gg.Color, color gg.Color) {
-	f_x := fn [min_x, max_x] (value f32) f32 {
-		return y + h - h * (value - min) / (max - min)
+	max_abs := max(abscice)
+	f_x := fn [min_x, max_x, max_abs] (abs f32) f32 {
+		return linear_interpolation(min_x, max_x, abs, max_abs)
 	}
 
-	f_y := fn [min_y, max_y] (value f32) f32 {
-		return min_y + (max_y - min_y)*value/max_value
+	max_value := max(value)
+	f_y := fn [min_y, max_y, max_value] (value f32) f32 {
+		return linear_interpolation(min_y, max_y, value, max_value)
 	}
-
-	f32(x + w * abscise[k] / max_a), f32(f(value[k])), f32(x + w * abscise[k +
-			1] / max_a), f32(f(value[k + 1]))
 
 	for k in 0 .. (abscise.len - 1) {
-		x1 := 
-		x2 := 
-		y1 := 
-		y2 := 
-		ctx.draw_line(x, y, x2, y2, color)
+		x1 := f_x(abscice[k])
+		x2 := f_x(abscice[k + 1])
+		y1 := f_y(value[k])
+		y2 := f_y(value[k + 1])
+		ctx.draw_line(x1, y1, x2, y2, color)
 	}
 }
