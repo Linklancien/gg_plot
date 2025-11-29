@@ -186,7 +186,7 @@ fn (dia Diagram) render_x_grid(ctx gg.Context) {
 		return linear_interpolation(min_x, max_x, value, total)
 	}
 
-	for i in 0 .. total {
+	for i in 0 .. (total + 1) {
 		x := f(i)
 		ctx.draw_line(x, min_y, x, max_y, dia.grid.color)
 	}
@@ -205,7 +205,7 @@ fn (dia Diagram) render_y_grid(ctx gg.Context) {
 		return linear_interpolation(min_y, max_y, value, total)
 	}
 
-	for i in 0 .. total {
+	for i in 0 .. (total + 1) {
 		y := f(i)
 		ctx.draw_line(min_x, y, max_x, y, dia.grid.color)
 	}
@@ -219,7 +219,7 @@ fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, absc
 
 	max_value := max(value) or { panic('no max value') }
 	f_y := fn [min_y, max_y, max_value] (value f32) f32 {
-		return linear_interpolation(min_y, max_y, value, max_value)
+		return linear_interpolation(max_y, min_y, value, max_value)
 	}
 
 	for k in 0 .. (abscice.len - 1) {
