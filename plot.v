@@ -3,6 +3,15 @@ module plot
 import gg
 import arrays { max, min }
 
+const cfg_x_axe = gg.TextCfg{
+	align:          .center
+	vertical_align: .middle
+}
+const cfg_y_axe = gg.TextCfg{
+	align:          .right
+	vertical_align: .middle
+}
+
 // render_graph creat a graph at x, y with a width of w and an height of h
 pub fn render_raw_graph(ctx gg.Context, x f32, y f32, w f32, h f32, abscice []f32, value []f32, name string) {
 	max := max(value) or { panic('No max value') }
@@ -156,19 +165,19 @@ pub fn (mut dia Diagram) border_size(border f32) {
 
 // rendering
 pub fn (dia Diagram) render(ctx gg.Context) {
+	max_x, max_y := dia.get_max_dim()
+	min_x, min_y := dia.get_min_dim()
 	// draw back
 	ctx.draw_rounded_rect_filled(dia.pos.x, dia.pos.y, dia.size.x, dia.size.y, dia.corner,
 		dia.background)
 	// draw grid
 	if dia.grid.x {
-		dia.render_x_grid(ctx)
+		dia.render_x_grid(ctx, min_x, max_x, min_y, max_y)
 	}
 	if dia.grid.y {
-		dia.render_y_grid(ctx)
+		dia.render_y_grid(ctx, min_x, max_x, min_y, max_y)
 	}
 	// draw curves
-	max_x, max_y := dia.get_max_dim()
-	min_x, min_y := dia.get_min_dim()
 
 	list_max := dia.get_list_max()
 
@@ -176,7 +185,8 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscises[id], dia.values[id],
 			dia.colors[id], list_max[dia.layers[id]])
 	}
-	// draw axes
+	// draw axes values
+	dia.render_axes(ctx, min_x, max_x, min_y, max_y)
 
 	// draw labels
 }
@@ -194,10 +204,7 @@ fn (dia Diagram) get_min_dim() (f32, f32) {
 }
 
 // draw grid
-fn (dia Diagram) render_x_grid(ctx gg.Context) {
-	max_x, max_y := dia.get_max_dim()
-	min_x, min_y := dia.get_min_dim()
-
+fn (dia Diagram) render_x_grid(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32) {
 	total := dia.grid.x_nb
 
 	f := fn [min_x, max_x, total] (value f32) f32 {
@@ -210,11 +217,8 @@ fn (dia Diagram) render_x_grid(ctx gg.Context) {
 	}
 }
 
-fn (dia Diagram) render_y_grid(ctx gg.Context) {
-	max_x, max_y := dia.get_max_dim()
-	min_x, min_y := dia.get_min_dim()
-
-	total := dia.grid.x_nb
+fn (dia Diagram) render_y_grid(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32) {
+	total := dia.grid.y_nb
 
 	f := fn [min_y, max_y, total] (value f32) f32 {
 		return linear_interpolation(min_y, max_y, value, total)
@@ -256,5 +260,33 @@ fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, absc
 		y1 := f_y(value[k])
 		y2 := f_y(value[k + 1])
 		ctx.draw_line(x1, y1, x2, y2, color)
+	}
+}
+
+// draw axes values
+fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32) {
+	// x
+	total_x := dia.grid.x_nb
+
+	f_x := fn [min_x, max_x, total_x] (value f32) int {
+		return int(linear_interpolation(min_x, max_x, value, total_x))
+	}
+
+	for i in 0 .. (total_x + 1) {
+		x := f_x(i)
+		text := 'TEST ${i}'
+		ctx.draw_text(x, int(max_y + dia.border / 2), text, cfg_x_axe)
+	}
+	// y
+	total_y := dia.grid.y_nb
+
+	f_y := fn [min_y, max_y, total_y] (value f32) int {
+		return int(linear_interpolation(min_y, max_y, value, total_y))
+	}
+
+	for i in 0 .. (total_y + 1) {
+		y := f_y(i)
+		text := 'TEST ${i}'
+		ctx.draw_text(int(min_x - dia.border / 2), y, text, cfg_y_axe)
 	}
 }
