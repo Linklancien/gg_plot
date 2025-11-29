@@ -170,13 +170,7 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 	max_y := dia.pos.y + dia.size.y - dia.border
 	min_y := dia.pos.y + dia.border
 
-	mut list_max := []f32{len: dia.values.len, init: max(dia.values[index]) or {panic('No max value for dia: $dia')}}
-	for i, layer in dia.layers{
-		max := max(dia.values[i]) or {panic('No max value for dia: $dia')}
-		if list_max[layer] < max{
-			list_max[layer] = max
-		}
-	}
+	list_max := dia.get_list_max()
 	
 	for id in 0 .. dia.abscises.len {
 		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscises[id], dia.values[id],
@@ -187,6 +181,7 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 	// draw labels
 }
 
+// draw grid
 fn (dia Diagram) render_x_grid(ctx gg.Context) {
 	max_x := dia.pos.x + dia.size.x - dia.border
 	min_x := dia.pos.x + dia.border
@@ -223,6 +218,18 @@ fn (dia Diagram) render_y_grid(ctx gg.Context) {
 		y := f(i)
 		ctx.draw_line(min_x, y, max_x, y, dia.grid.color)
 	}
+}
+
+// draw curves
+fn (dia Diagram) get_list_max() []f32 {
+	mut list_max := []f32{len: dia.values.len, init: max(dia.values[index]) or {panic('No max value for dia: $dia')}}
+	for i, layer in dia.layers{
+		max := max(dia.values[i]) or {panic('No max value for dia: $dia')}
+		if list_max[layer] < max{
+			list_max[layer] = max
+		}
+	}
+	return list_max
 }
 
 fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, abscice []f32, value []f32, color gg.Color, max_value f32) {
