@@ -242,7 +242,7 @@ fn (dia Diagram) get_list_max() []f32 {
 	for i, layer in dia.layers {
 		max := max(dia.values[i]) or { panic('No max value for dia: ${dia}') }
 		if list_max[layer] < max {
-			list_max[layer] = max
+			list_max[layer] = max	
 		}
 	}
 	return list_max
@@ -297,7 +297,7 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 	min_value := min(dia.values[0])or{panic('No min')}
 	max_value := max(dia.values[0])or{panic('No max')}
 	f_val := fn [min_value, max_value, total_y] (value f32) f32 {
-		return linear_interpolation(min_value, max_value, value, total_y)
+		return linear_interpolation(max_value, min_value, value, total_y)
 	}
 
 	for i in 0 .. (total_y + 1) {
