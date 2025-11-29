@@ -71,9 +71,9 @@ mut:
 
 	// b:
 	abscisses [][]f32
-	values   [][]f32
-	colors   []gg.Color
-	layers   []int
+	values    [][]f32
+	colors    []gg.Color
+	layers    []int
 
 	// c:
 	grid       Grid
@@ -112,9 +112,9 @@ pub fn plot(abscisses [][]f32, values [][]f32, colors []gg.Color, layers []int) 
 	assert abscisses.len == layers.len, "Len of abscisses and layers doesn't match"
 	return Diagram{
 		abscisses: abscisses
-		values:   values
-		colors:   colors
-		layers:   layers
+		values:    values
+		colors:    colors
+		layers:    layers
 	}
 }
 
@@ -242,7 +242,7 @@ fn (dia Diagram) get_list_max() []f32 {
 	for i, layer in dia.layers {
 		max := max(dia.values[i]) or { panic('No max value for dia: ${dia}') }
 		if list_max[layer] < max {
-			list_max[layer] = max	
+			list_max[layer] = max
 		}
 	}
 	return list_max
@@ -275,18 +275,21 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 	f_x := fn [min_x, max_x, total_x] (value f32) int {
 		return int(linear_interpolation(min_x, max_x, value, total_x))
 	}
-
-	min_abs := min(dia.abscisses[0])or{panic('No min')}
-	max_abs := max(dia.abscisses[0])or{panic('No max')}
-	f_abs := fn [min_abs, max_abs, total_x] (value f32) f32 {
-		return linear_interpolation(min_abs, max_abs, value, total_x)
+	mut texts_abs := []string{len: (total_x + 1)}
+	for id in 0 .. dia.abscisses.len {
+		min_abs := min(dia.abscisses[id]) or { panic('No min') }
+		max_abs := max(dia.abscisses[id]) or { panic('No max') }
+		f_abs := fn [min_abs, max_abs, total_x] (value f32) f32 {
+			return linear_interpolation(min_abs, max_abs, value, total_x)
+		}
+		for i in 0 .. (total_x + 1) {
+			texts_abs[i] += '|${f_abs(i)}|'
+		}
 	}
 
 	for i in 0 .. (total_x + 1) {
 		x := f_x(i)
-		text := '${f_abs(i)}'
-		// panic('$min_abs, $max_abs, ${f_abs(3)} ${dia.abscisses[0]}')
-		ctx.draw_text(x, int(max_y + dia.border / 2), text, cfg_x_axe)
+		ctx.draw_text(x, int(max_y + dia.border / 2), texts_abs[i], cfg_x_axe)
 	}
 	// y
 	total_y := dia.grid.y_nb
@@ -294,15 +297,20 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 	f_y := fn [min_y, max_y, total_y] (value f32) int {
 		return int(linear_interpolation(min_y, max_y, value, total_y))
 	}
-	min_value := min(dia.values[0])or{panic('No min')}
-	max_value := max(dia.values[0])or{panic('No max')}
-	f_val := fn [min_value, max_value, total_y] (value f32) f32 {
-		return linear_interpolation(max_value, min_value, value, total_y)
+	mut texts_val := []string{len: (total_x + 1)}
+	for id in 0 .. dia.values.len {
+		min_value := min(dia.values[id]) or { panic('No min') }
+		max_value := max(dia.values[id]) or { panic('No max') }
+		f_val := fn [min_value, max_value, total_y] (value f32) f32 {
+			return linear_interpolation(max_value, min_value, value, total_y)
+		}
+		for i in 0 .. (total_x + 1) {
+			texts_val[i] += '|${f_val(i)}|'
+		}
 	}
 
 	for i in 0 .. (total_y + 1) {
 		y := f_y(i)
-		text := '${f_val(i)}'
-		ctx.draw_text(int(min_x - dia.border / 2), y, text, cfg_y_axe)
+		ctx.draw_text(int(min_x - dia.border / 2), y, texts_val[i], cfg_y_axe)
 	}
 }

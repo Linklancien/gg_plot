@@ -11,7 +11,7 @@ fn main() {
 	mut app := &App{}
 	app.ctx = gg.new_context(
 		fullscreen:    false
-		width:         100 * 8
+		width:         100 * 9
 		height:        100 * 6
 		create_window: true
 		window_title:  '-Test plot-'
@@ -30,7 +30,7 @@ fn main() {
 		[]f32{len: precision + 1, init: f(index)}], [[]f32{len: precision + 1, init: f(index) * f(index)},
 		[]f32{len: precision + 1, init: f(index) * f(index) * f(index)}], [gg.red, gg.blue],
 		[0, 0])
-	app.dia.change_pos(100, 50)
+	app.dia.change_pos(150, 50)
 	app.dia.change_size(600, 500)
 	app.dia.border_size(30)
 	app.dia.corner_size(30)
