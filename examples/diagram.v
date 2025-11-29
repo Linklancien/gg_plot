@@ -20,9 +20,9 @@ fn main() {
 		frame_fn:      on_frame
 		sample_count:  4
 	)
-
-	app.dia = plot.plot([[]f32{len: 100, init: index}], [[]f32{len: 100, init: index * index}],
-		[gg.red])
+	total := 300
+	app.dia = plot.plot([[]f32{len: total, init: index}, []f32{len: total, init: index}], [[]f32{len: total, init: index * index}, []f32{len: total, init: index * index * index}],
+		[gg.red, gg.blue])
 	app.dia.change_pos(10, 10)
 	app.dia.change_size(400, 400)
 

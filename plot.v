@@ -95,6 +95,7 @@ struct Grid {
 // basic creation
 pub fn plot(abscises [][]f32, values [][]f32, colors []gg.Color) Diagram {
 	assert abscises.len == values.len, 'Not enougth values or abscises'
+	assert abscises.len == colors.len, 'Not enougth color or abscises'
 	return Diagram{
 		abscises: abscises
 		values:   values
@@ -164,6 +165,7 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 
 	max_y := dia.pos.y + dia.size.y - dia.border
 	min_y := dia.pos.y + dia.border
+	
 	for id in 0 .. dia.abscises.len {
 		render_curve(ctx, min_x, max_x, min_y, max_y, dia.abscises[id], dia.values[id],
 			dia.colors[id])
