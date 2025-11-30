@@ -150,7 +150,7 @@ pub fn (mut dia Diagram) replace_curve(index int, abscisse []f32, value []f32, c
 	dia.colors[index] = color
 }
 
-pub fn (mut dia Diagram) extend_curve(index, extend_abscisse []f32, extend_value []f32) {
+pub fn (mut dia Diagram) extend_curve(index int, extend_abscisse []f32, extend_value []f32) {
 	assert index < dia.abscisses.len, 'Invalid index: ${index}, max should be ${dia.abscisses.len}'
 	dia.abscisses[index] << extend_abscisse
 	dia.values[index] << extend_value

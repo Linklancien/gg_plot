@@ -20,15 +20,22 @@ fn main() {
 		frame_fn:      on_frame
 		sample_count:  4
 	)
-	precision := 100
-	start := 0
-	end := 2
-	f := fn [start, end, precision] (id f32) f32 {
-		return gg_plot.linear_interpolation(start, end, id, precision)
+	precision1 := 40
+	start1 := 0
+	end1 := 2
+
+	precision2 := 40
+	start2 := 0
+	end2 := 3
+	f1 := fn [start1, end1, precision1] (id f32) f32 {
+		return gg_plot.linear_interpolation(start1, end1, id, precision1)
 	}
-	app.dia = gg_plot.plot([[]f32{len: precision + 1, init: f(index)},
-		[]f32{len: precision + 1, init: f(index)}], [[]f32{len: precision + 1, init: f(index) * f(index)},
-		[]f32{len: precision + 1, init: f(index) * f(index) * f(index)}], [gg.red, gg.blue])
+	f2 := fn [start2, end2, precision2] (id f32) f32 {
+		return gg_plot.linear_interpolation(start2, end2, id, precision2)
+	}
+	app.dia = gg_plot.plot([[]f32{len: precision1 + 1, init: f1(index)},
+		[]f32{len: precision2 + 1, init: f2(index)}], [[]f32{len: precision1 + 1, init: f1(index) * f1(index)},
+		[]f32{len: precision2 + 1, init: f2(index) * f2(index) * f2(index)}], [gg.red, gg.blue])
 	app.dia.change_pos(150, 50)
 	app.dia.change_size(600, 500)
 	app.dia.border_size(40)
