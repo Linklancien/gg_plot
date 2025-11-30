@@ -135,10 +135,25 @@ pub fn (mut dia Diagram) change_size(w f32, h f32) {
 	}
 }
 
+// curves
 pub fn (mut dia Diagram) add_curve(abscisse []f32, value []f32, color gg.Color) {
 	dia.abscisses << abscisse
 	dia.values << value
 	dia.colors << color
+}
+
+// replace the curve at index by a new one
+pub fn (mut dia Diagram) replace_curve(index int, abscisse []f32, value []f32, color gg.Color) {
+	assert index < dia.abscisses.len, 'Invalid index: ${index}, max should be ${dia.abscisses.len}'
+	dia.abscisses[index] = abscisse
+	dia.values[index] = value
+	dia.colors[index] = color
+}
+
+pub fn (mut dia Diagram) extend_curve(index, extend_abscisse []f32, extend_value []f32) {
+	assert index < dia.abscisses.len, 'Invalid index: ${index}, max should be ${dia.abscisses.len}'
+	dia.abscisses[index] << extend_abscisse
+	dia.values[index] << extend_value
 }
 
 pub fn (mut dia Diagram) show_grid(to_show bool) {
@@ -317,7 +332,7 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 }
 
 fn (dia Diagram) render_labels(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32) {
-x_title := int((min_x + max_x) / 2)
+	x_title := int((min_x + max_x) / 2)
 y_title := int(min_y - dia.border / 2)
 ctx.draw_text(x_title, y_title, dia.title.text, dia.title.cfg)
 
