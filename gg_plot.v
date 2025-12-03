@@ -327,7 +327,7 @@ fn (dia Diagram) render_axes(ctx gg.Context, min_x f32, max_x f32, min_y f32, ma
 	for i in 0 .. (total_y + 1) {
 		y := f_y(i)
 		text_val := '${round_sig(f_val(i), signigicant_numbers)}'
-		ctx.draw_text(int(min_x - dia.border / 2), y, text_val, cfg_y_axe)
+		ctx.draw_text(int(min_x - 1), y, text_val, cfg_y_axe)
 	}
 }
 
