@@ -72,6 +72,11 @@ mut:
 	}
 
 	// b:
+	autoscale bool = true
+	max_abs   f32
+	min_abs   f32
+	max_val   f32
+	min_val   f32
 	abscisses [][]f32
 	values    [][]f32
 	colors    []gg.Color
@@ -113,10 +118,19 @@ struct Grid {
 pub fn plot(abscisses [][]f32, values [][]f32, colors []gg.Color) Diagram {
 	assert abscisses.len == values.len, "Len of abscisses and values doesn't match"
 	assert abscisses.len == colors.len, "Len of abscisses and colors doesn't match"
-	return Diagram{
+	mut dia := Diagram{
 		abscisses: abscisses
 		values:    values
 		colors:    colors
+	}
+	dia.autosacling()
+	return dia
+}
+
+fn (mut dia Diagram) autosacling() {
+	if dia.autoscale {
+		dia.max_abs, dia.max_val = dia.get_max()
+		dia.min_abs, dia.min_val = dia.get_min()
 	}
 }
 
@@ -140,6 +154,7 @@ pub fn (mut dia Diagram) add_curve(abscisse []f32, value []f32, color gg.Color) 
 	dia.abscisses << abscisse
 	dia.values << value
 	dia.colors << color
+	dia.autosacling()
 }
 
 // replace the curve at index by a new one
@@ -148,12 +163,14 @@ pub fn (mut dia Diagram) replace_curve(index int, abscisse []f32, value []f32, c
 	dia.abscisses[index] = abscisse
 	dia.values[index] = value
 	dia.colors[index] = color
+	dia.autosacling()
 }
 
 pub fn (mut dia Diagram) extend_curve(index int, extend_abscisse []f32, extend_value []f32) {
 	assert index < dia.abscisses.len, 'Invalid index: ${index}, max should be ${dia.abscisses.len}'
 	dia.abscisses[index] << extend_abscisse
 	dia.values[index] << extend_value
+	dia.autosacling()
 }
 
 pub fn (mut dia Diagram) show_grid(to_show bool) {
@@ -183,6 +200,17 @@ pub fn (mut dia Diagram) corner_size(corner f32) {
 	dia.corner = corner
 }
 
+pub fn (mut dia Diagram) set_scale(max_abs f32, min_abs f32, max_val f32, min_val f32) {
+	dia.max_abs = max_abs
+	dia.min_abs = min_abs
+	dia.max_val = max_val
+	dia.min_val = min_val
+}
+
+pub fn (mut dia Diagram) set_autoscale(autoscale bool) {
+	dia.autoscale = autoscale
+}
+
 // rendering
 pub fn (dia Diagram) render(ctx gg.Context) {
 	max_x, max_y := dia.get_max_dim()
@@ -199,15 +227,13 @@ pub fn (dia Diagram) render(ctx gg.Context) {
 	}
 	// draw curves
 
-	max_abs, max_val := dia.get_max()
-	min_abs, min_val := dia.get_min()
-
 	for id in 0 .. dia.abscisses.len {
-		render_curve(ctx, min_x, max_x, min_y, max_y, min_abs, max_abs, min_val, max_val,
-			dia.abscisses[id], dia.values[id], dia.colors[id])
+		render_curve(ctx, min_x, max_x, min_y, max_y, dia.min_abs, dia.max_abs, dia.min_val,
+			dia.max_val, dia.abscisses[id], dia.values[id], dia.colors[id])
 	}
 	// draw axes values
-	dia.render_axes(ctx, min_x, max_x, min_y, max_y, min_abs, max_abs, min_val, max_val)
+	dia.render_axes(ctx, min_x, max_x, min_y, max_y, dia.min_abs, dia.max_abs, dia.min_val,
+		dia.max_val)
 
 	// draw labels
 	dia.render_labels(ctx, min_x, max_x, min_y, max_y)

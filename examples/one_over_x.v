@@ -27,7 +27,9 @@ fn main() {
 	f := fn [start1, end1, precision1] (id f32) f32 {
 		return gg_plot.linear_interpolation(start1, end1, id, precision1)
 	}
-	app.dia = gg_plot.plot([[]f32{len: precision1 + 1, init: f(index)}], [[]f32{len: precision1 + 1, init: 1/f(index)},], [gg.red])
+	app.dia = gg_plot.plot([[]f32{len: precision1 + 1, init: f(index)}], [
+		[]f32{len: precision1 + 1, init: 1 / f(index)},
+	], [gg.red])
 
 	app.dia.change_pos(150, 50)
 	app.dia.change_size(600, 500)
