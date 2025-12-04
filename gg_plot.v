@@ -134,6 +134,30 @@ fn (mut dia Diagram) autosacling() {
 	}
 }
 
+fn (dia Diagram) get_max() (f32, f32) {
+	mut max_abs := max(dia.abscisses[0]) or { panic('No abs') }
+	mut max_val := max(dia.values[0]) or { panic('No val') }
+	for i in 1 .. dia.abscisses.len {
+		local_abs := max(dia.abscisses[i]) or { panic('No abs') }
+		max_abs = f32_max(local_abs, max_abs)
+		local_val := max(dia.values[i]) or { panic('No val') }
+		max_val = f32_max(max_val, local_val)
+	}
+	return max_abs, max_val
+}
+
+fn (dia Diagram) get_min() (f32, f32) {
+	mut min_abs := min(dia.abscisses[0]) or { panic('No abs') }
+	mut min_val := min(dia.values[0]) or { panic('No val') }
+	for i in 1 .. dia.abscisses.len {
+		local_abs := min(dia.abscisses[i]) or { panic('No abs') }
+		min_abs = f32_min(local_abs, min_abs)
+		local_val := min(dia.values[i]) or { panic('No val') }
+		min_val = f32_min(min_val, local_val)
+	}
+	return min_abs, min_val
+}
+
 // changes
 pub fn (mut dia Diagram) change_pos(x f32, y f32) {
 	dia.pos = Pos{
@@ -279,29 +303,6 @@ fn (dia Diagram) render_y_grid(ctx gg.Context, min_x f32, max_x f32, min_y f32, 
 }
 
 // draw curves
-fn (dia Diagram) get_max() (f32, f32) {
-	mut max_abs := max(dia.abscisses[0]) or { panic('No abs') }
-	mut max_val := max(dia.values[0]) or { panic('No val') }
-	for i in 1 .. dia.abscisses.len {
-		local_abs := max(dia.abscisses[i]) or { panic('No abs') }
-		max_abs = f32_max(local_abs, max_abs)
-		local_val := max(dia.values[i]) or { panic('No val') }
-		max_val = f32_max(max_val, local_val)
-	}
-	return max_abs, max_val
-}
-
-fn (dia Diagram) get_min() (f32, f32) {
-	mut min_abs := min(dia.abscisses[0]) or { panic('No abs') }
-	mut min_val := min(dia.values[0]) or { panic('No val') }
-	for i in 1 .. dia.abscisses.len {
-		local_abs := min(dia.abscisses[i]) or { panic('No abs') }
-		min_abs = f32_min(local_abs, min_abs)
-		local_val := min(dia.values[i]) or { panic('No val') }
-		min_val = f32_min(min_val, local_val)
-	}
-	return min_abs, min_val
-}
 
 fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, min_abs f32, max_abs f32, min_val f32, max_val f32, abscisse []f32, value []f32, color gg.Color) {
 	f_x := fn [min_x, max_x, min_abs, max_abs] (abs f32) f32 {
