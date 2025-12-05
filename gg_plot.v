@@ -321,13 +321,51 @@ fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, min_
 
 	for k in 0 .. (abscisse.len - 1) {
 		x1 := floor(f_x(abscisse[k]), min_x, max_x)
-		x2 := floor(f_x(abscisse[k + 1]), min_x, max_x)
 		y1 := floor(f_y(value[k]), min_y, max_y)
+		x2 := floor(f_x(abscisse[k + 1]), min_x, max_x)
 		y2 := floor(f_y(value[k + 1]), min_y, max_y)
 		ctx.draw_line(x1, y1, x2, y2, color)
 	}
 }
 
+// x1, y1 := intersection(f_x(abscisse[k]), min_x, max_x, f_y(value[k]), min_y, max_y)
+// x2, y2 := intersection(f_x(abscisse[k+1]), min_x, max_x, f_y(value[k+1]), min_y, max_y)
+fn intersection(value_x f32, min_x f32, max_x f32, value_y f32, min_y f32, max_y f32) (f32, f32) {
+	// check if they are past there max or min
+	x_in_bondaries := min_x <= value_x && value_x <= max_x
+	y_in_bondaries := min_y <= value_y && value_y <= max_y
+	if x_in_bondaries && y_in_bondaries{
+		return value_x, value_y
+	}
+	// one of them is past the limit
+	if !x_in_bondaries && y_in_bondaries{
+		if value_x < min_x {
+			return min_x, value_y*min_x/value_x
+		} else if value_x > max_x {
+			return max_x, value_y*max_x/value_x
+		}
+		panic('This sould not happend !x_in_bondaries && y_in_bondaries, $value_x < $min_x && $value_x > $max_x')
+	}
+	if x_in_bondaries && !y_in_bondaries{
+		if value_y < min_y {
+			return value_x*min_y/value_y, min_y
+		} else if value_y > max_y {
+			return value_x*min_y/value_y, max_y
+		}
+		panic('This sould not happend x_in_bondaries && !y_in_bondaries, $value_y < $min_y && $value_y > $max_y, ${value_y > max_y}')
+	}
+
+	// find witch one is further to it's max / min
+	panic('not impl')
+	if !x_in_bondaries && !y_in_bondaries{
+		return value_x, value_y
+	}
+}
+
+// x1 := floor(f_x(abscisse[k]), min_x, max_x)
+// y1 := floor(f_y(value[k]), min_y, max_y)
+// x2 := floor(f_x(abscisse[k + 1]), min_x, max_x)
+// y2 := floor(f_y(value[k + 1]), min_y, max_y)
 fn floor(value f32, min f32, max f32) f32 {
 	if value < min {
 		return min

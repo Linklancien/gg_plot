@@ -39,7 +39,6 @@ fn main() {
 
 	app.dia.x_label('x')
 	app.dia.y_label('Somme power of x')
-	print(app.dia)
 	app.dia.set_scale(-1, 4, 1, 15)
 	// app.dia.autosacling()
 
