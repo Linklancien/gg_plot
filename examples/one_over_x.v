@@ -21,7 +21,7 @@ fn main() {
 		sample_count:  4
 	)
 	precision1 := 40
-	start1 := f32(0.1)
+	start1 := f32(0)
 	end1 := 3
 
 	f := fn [start1, end1, precision1] (id f32) f32 {
@@ -39,6 +39,9 @@ fn main() {
 
 	app.dia.x_label('x')
 	app.dia.y_label('Somme power of x')
+	print(app.dia)
+	app.dia.set_scale(-1, 4, 1, 15)
+	// app.dia.autosacling()
 
 	app.ctx.run()
 }

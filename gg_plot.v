@@ -123,15 +123,15 @@ pub fn plot(abscisses [][]f32, values [][]f32, colors []gg.Color) Diagram {
 		values:    values
 		colors:    colors
 	}
-	dia.autosacling()
+	if dia.autoscale {
+		dia.autosacling()
+	}
 	return dia
 }
 
-fn (mut dia Diagram) autosacling() {
-	if dia.autoscale {
-		dia.max_abs, dia.max_val = dia.get_max()
-		dia.min_abs, dia.min_val = dia.get_min()
-	}
+pub fn (mut dia Diagram) autosacling() {
+	dia.max_abs, dia.max_val = dia.get_max()
+	dia.min_abs, dia.min_val = dia.get_min()
 }
 
 fn (dia Diagram) get_max() (f32, f32) {
@@ -178,7 +178,9 @@ pub fn (mut dia Diagram) add_curve(abscisse []f32, value []f32, color gg.Color) 
 	dia.abscisses << abscisse
 	dia.values << value
 	dia.colors << color
-	dia.autosacling()
+	if dia.autoscale {
+		dia.autosacling()
+	}
 }
 
 // replace the curve at index by a new one
@@ -187,14 +189,18 @@ pub fn (mut dia Diagram) replace_curve(index int, abscisse []f32, value []f32, c
 	dia.abscisses[index] = abscisse
 	dia.values[index] = value
 	dia.colors[index] = color
-	dia.autosacling()
+	if dia.autoscale {
+		dia.autosacling()
+	}
 }
 
 pub fn (mut dia Diagram) extend_curve(index int, extend_abscisse []f32, extend_value []f32) {
 	assert index < dia.abscisses.len, 'Invalid index: ${index}, max should be ${dia.abscisses.len}'
 	dia.abscisses[index] << extend_abscisse
 	dia.values[index] << extend_value
-	dia.autosacling()
+	if dia.autoscale {
+		dia.autosacling()
+	}
 }
 
 pub fn (mut dia Diagram) show_grid(to_show bool) {
@@ -224,7 +230,7 @@ pub fn (mut dia Diagram) corner_size(corner f32) {
 	dia.corner = corner
 }
 
-pub fn (mut dia Diagram) set_scale(max_abs f32, min_abs f32, max_val f32, min_val f32) {
+pub fn (mut dia Diagram) set_scale(min_abs f32, max_abs f32, min_val f32, max_val f32) {
 	dia.max_abs = max_abs
 	dia.min_abs = min_abs
 	dia.max_val = max_val
@@ -314,12 +320,21 @@ fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, min_
 	}
 
 	for k in 0 .. (abscisse.len - 1) {
-		x1 := f_x(abscisse[k])
-		x2 := f_x(abscisse[k + 1])
-		y1 := f_y(value[k])
-		y2 := f_y(value[k + 1])
+		x1 := floor(f_x(abscisse[k]), min_x, max_x)
+		x2 := floor(f_x(abscisse[k + 1]), min_x, max_x)
+		y1 := floor(f_y(value[k]), min_y, max_y)
+		y2 := floor(f_y(value[k + 1]), min_y, max_y)
 		ctx.draw_line(x1, y1, x2, y2, color)
 	}
+}
+
+fn floor(value f32, min f32, max f32) f32 {
+	if value < min {
+		return min
+	} else if value > max {
+		return max
+	}
+	return value
 }
 
 // draw axes values
