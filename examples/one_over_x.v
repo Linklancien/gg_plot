@@ -20,7 +20,7 @@ fn main() {
 		frame_fn:      on_frame
 		sample_count:  4
 	)
-	precision1 := 40
+	precision1 := 45
 	start1 := f32(0)
 	end1 := 3
 
@@ -39,7 +39,7 @@ fn main() {
 
 	app.dia.x_label('x')
 	app.dia.y_label('Somme power of x')
-	app.dia.set_scale(-1, 4, 1, 15)
+	app.dia.set_scale(-1, 4, 0.5, 15)
 	// app.dia.autosacling()
 
 	app.ctx.run()

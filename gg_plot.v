@@ -320,45 +320,85 @@ fn render_curve(ctx gg.Context, min_x f32, max_x f32, min_y f32, max_y f32, min_
 	}
 
 	for k in 0 .. (abscisse.len - 1) {
-		x1 := floor(f_x(abscisse[k]), min_x, max_x)
-		y1 := floor(f_y(value[k]), min_y, max_y)
-		x2 := floor(f_x(abscisse[k + 1]), min_x, max_x)
-		y2 := floor(f_y(value[k + 1]), min_y, max_y)
-		ctx.draw_line(x1, y1, x2, y2, color)
+		// x1, y1 := intersection(f_x(abscisse[k]), min_x, max_x, f_y(value[k]), min_y, max_y)
+		// x2, y2 := intersection(f_x(abscisse[k+1]), min_x, max_x, f_y(value[k+1]), min_y, max_y)
+
+		// x1 := floor(f_x(abscisse[k]), min_x, max_x)
+		// y1 := floor(f_y(value[k]), min_y, max_y)
+		// x2 := floor(f_x(abscisse[k + 1]), min_x, max_x)
+		// y2 := floor(f_y(value[k + 1]), min_y, max_y)
+		// ctx.draw_line(x1, y1, x2, y2, color)
+
+		x1 := f_x(abscisse[k])
+		y1 := f_y(value[k])
+		x2 := f_x(abscisse[k + 1])
+		y2 := f_y(value[k + 1])
+		draw_intersected(ctx, x1, x2, y1, y2, min_x, max_x, min_y, max_y, color)
 	}
 }
 
-// x1, y1 := intersection(f_x(abscisse[k]), min_x, max_x, f_y(value[k]), min_y, max_y)
-// x2, y2 := intersection(f_x(abscisse[k+1]), min_x, max_x, f_y(value[k+1]), min_y, max_y)
-fn intersection(value_x f32, min_x f32, max_x f32, value_y f32, min_y f32, max_y f32) (f32, f32) {
-	// check if they are past there max or min
-	x_in_bondaries := min_x <= value_x && value_x <= max_x
-	y_in_bondaries := min_y <= value_y && value_y <= max_y
-	if x_in_bondaries && y_in_bondaries{
-		return value_x, value_y
-	}
-	// one of them is past the limit
-	if !x_in_bondaries && y_in_bondaries{
-		if value_x < min_x {
-			return min_x, value_y*min_x/value_x
-		} else if value_x > max_x {
-			return max_x, value_y*max_x/value_x
-		}
-		panic('This sould not happend !x_in_bondaries && y_in_bondaries, $value_x < $min_x && $value_x > $max_x')
-	}
-	if x_in_bondaries && !y_in_bondaries{
-		if value_y < min_y {
-			return value_x*min_y/value_y, min_y
-		} else if value_y > max_y {
-			return value_x*min_y/value_y, max_y
-		}
-		panic('This sould not happend x_in_bondaries && !y_in_bondaries, $value_y < $min_y && $value_y > $max_y, ${value_y > max_y}')
-	}
+fn draw_intersected(ctx gg.Context, x1 f32, x2 f32, y1 f32, y2 f32, min_x f32, max_x f32, min_y f32, max_y f32, color gg.Color) {
+	// check witch are past there max or min
+	x1_in_bondaries := min_x <= x1 && x1 <= max_x
+	y1_in_bondaries := min_y <= y1 && y1 <= max_y
+	x2_in_bondaries := min_x <= x2 && x2 <= max_x
+	y2_in_bondaries := min_y <= y2 && y2 <= max_y
 
-	// find witch one is further to it's max / min
-	panic('not impl')
-	if !x_in_bondaries && !y_in_bondaries{
-		return value_x, value_y
+	if x1_in_bondaries && x2_in_bondaries && y1_in_bondaries && y2_in_bondaries {
+		// all point are inside
+		ctx.draw_line(x1, y1, x2, y2, color)
+	} else if x1_in_bondaries && y1_in_bondaries {
+		// only point 1 is inside
+		intersection(ctx, x1, y1, x2, y2, min_x, max_x, min_y, max_y, x2_in_bondaries,
+			y2_in_bondaries)
+	} else if x2_in_bondaries && y2_in_bondaries {
+		// only point 2 is inside
+		// check witch coo is further:
+		intersection(ctx, x2, y2, x1, y1, min_x, max_x, min_y, max_y, x1_in_bondaries,
+			y1_in_bondaries)
+	}
+	// both point are outside so no rendering is needed
+}
+
+fn intersection(ctx gg.Context, pos_x f32, pos_y f32, x f32, y f32, min_x f32, max_x f32, min_y f32, max_y f32, x_in_bondaries bool, y_in_bondaries bool) {
+	r := 5
+	if x_in_bondaries {
+		// y outside
+		if y < min_y {
+			new_x := x * (min_y - pos_y) / (y - pos_y) + pos_y
+			new_y := min_y
+			ctx.draw_line(pos_x, pos_y, new_x, new_y, gg.green)
+			ctx.draw_circle_filled(pos_x, pos_y, r, gg.red)
+			ctx.draw_circle_filled(new_x, new_y, r, gg.blue)
+			// ctx.draw_circle_filled(x, min_y, r, gg.red)
+			// ctx.draw_line(pos_x, pos_y, x, new_y, gg.blue)
+			// panic('$min_y, pos: x: $pos_x, y: $pos_y, new: x: $new_x, y: $new_y, init: x: $x, y: $y, ${x * (min_y - pos_y) / (y - pos_y)}')
+		} else if y > max_y {
+			new_x := x * (max_y - pos_y) / (y - pos_y) + pos_y
+			new_y := max_y
+			ctx.draw_line(pos_x, pos_y, new_x, new_y, gg.dark_green)
+			ctx.draw_circle_filled(pos_x, pos_y, r, gg.red)
+			ctx.draw_circle_filled(new_x, new_y, r, gg.blue)
+		} else {
+			panic('y inside')
+		}
+	} else if y_in_bondaries {
+		// x outside
+		if x < min_x {
+			new_x := min_x
+			new_y := y * (min_x - pos_y) / (x - pos_y) + pos_y
+			ctx.draw_line(pos_x, pos_y, new_x, new_y, gg.blue)
+			ctx.draw_circle_filled(pos_x, pos_y, r, gg.red)
+			ctx.draw_circle_filled(new_x, new_y, r, gg.green)
+		} else if x > max_x {
+			new_x := max_x
+			new_y := y * (max_x - pos_y) / (x - pos_y) + pos_y
+			ctx.draw_line(pos_x, pos_y, new_x, new_y, gg.dark_blue)
+			ctx.draw_circle_filled(pos_x, pos_y, r, gg.red)
+			ctx.draw_circle_filled(new_x, new_y, r, gg.green)
+		} else {
+			panic('x inside')
+		}
 	}
 }
 
